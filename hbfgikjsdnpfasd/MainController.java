@@ -4,19 +4,25 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 @RestController
 public class MainController {
     private PersonService personService;
+    private MessageService messageService;
+
     //URL при подключении к бд "jdbc:h2:mem:demo-db;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE"
 
     @Autowired
-    public MainController(PersonService personService) {
+    public MainController(PersonService personService, MessageService messageService) {
         this.personService = personService;
+        this.messageService = messageService;
+
     }
-
-
 
     // GET requests
     @GetMapping("/persons")
@@ -29,16 +35,15 @@ public class MainController {
         return new ResponseEntity<>(personService.findPersonById(id), HttpStatus.OK);
     }
 
-    // Получить все сообщения конкретного пользователя по его id (4.18-16)
-    @GetMapping("/persons/{id}/messages")
-    public ResponseEntity<Iterable<Message>> getAllMessagesToPerson(@PathVariable Long id) {
-        if (personService.getAllMessagesToPerson(id) != null) {
-            return new ResponseEntity<>(personService.getAllMessagesToPerson(id), HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
+    @GetMapping("/messages")
+    public ResponseEntity<Iterable<Message>> getAllMessages() {
+        return new ResponseEntity<>(messageService.getAllMessages(), HttpStatus.OK);
     }
 
+    @GetMapping("/messages/{id}")
+    public ResponseEntity<Optional<Message>> findMessageById(@PathVariable Long id) {
+        return new ResponseEntity<>(messageService.findMessageById(id), HttpStatus.OK);
+    }
 
 
     // POST requests
@@ -48,22 +53,19 @@ public class MainController {
     }
 
     @PostMapping("/persons/{id}/messages")
-    public ResponseEntity<Person> addMessageToPerson(@PathVariable Long id, @RequestBody Message message) {
-        Person person = personService.addMessageToPerson(id, message);
-        if (person != null) {
-            return new ResponseEntity<>(person, HttpStatus.CREATED);
-        }
-        else {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
+    public Person addMessageToPerson(@PathVariable Long id, @RequestBody Message message) {
+        return personService.addMessageToPerson(id, message);
     }
-
-
 
     // PUT requests
     @PutMapping("/persons/{id}")
     public ResponseEntity<Person> updatePerson(@PathVariable Long id, @RequestBody Person person) {
         return new ResponseEntity<>(personService.updatePerson(id, person), HttpStatus.OK);
+    }
+
+    @PutMapping("/messages/{id}")
+    public ResponseEntity<Message> updateMessageById(@PathVariable Long id, @RequestBody Message message) {
+        return new ResponseEntity<>(messageService.updateMessageById(id, message), HttpStatus.OK);
     }
 
 
@@ -75,16 +77,11 @@ public class MainController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    // Удалить сообщение конкретного пользователя по его id (4.18-16)
-    @DeleteMapping("/persons/{personId}/messages/{messageId}")
-    public ResponseEntity<Person> deleteMessageToPerson(@PathVariable Long personId, @PathVariable Long messageId) {
-        Person person = personService.deleteMessageToPerson(personId, messageId);
-        if (person != null) {
-            return new ResponseEntity<>(person, HttpStatus.OK);
-        }
-        else {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
+    @DeleteMapping("/messages/{id}")
+    public ResponseEntity<Message> deleteMessageById(@PathVariable Long id) {
+        messageService.deleteMessageById(id);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
+
 
 }

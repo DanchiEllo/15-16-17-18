@@ -17,7 +17,7 @@ public class Person {
     private String surname;
     private String lastname;
     private LocalDate birthday;
-    @OneToMany(mappedBy = "person", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(cascade = CascadeType.ALL)
     List<Message> messages;
     public Person(int id, String firstname, String surname, String lastname, LocalDate birthday, List<Message> messages) {
         this.id = id;
